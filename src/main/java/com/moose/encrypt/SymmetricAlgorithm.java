@@ -26,6 +26,7 @@ public enum SymmetricAlgorithm {
     },
 
     TripleDES("DESede") {
+
         @Override
         public SecretKey createSecretKey(byte[] key) {
             try {
@@ -38,6 +39,7 @@ public enum SymmetricAlgorithm {
     },
 
     AES("AES") {
+
         @Override
         public SecretKey createSecretKey(byte[] key) {
             return new SecretKeySpec(key, getName());

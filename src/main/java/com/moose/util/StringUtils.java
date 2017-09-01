@@ -1,7 +1,6 @@
 package com.moose.util;
 
 
-import com.google.common.base.Strings;
 import com.moose.encrypt.Base64;
 import org.springframework.lang.UsesJava8;
 import org.springframework.util.ObjectUtils;
