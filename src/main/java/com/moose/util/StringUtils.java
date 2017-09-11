@@ -8,6 +8,7 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Nullable;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,5 +36,13 @@ public abstract class StringUtils extends org.springframework.util.StringUtils {
         return Stream.of(strings)
                 .filter(StringUtils::isNotEmpty)
                 .collect(Collectors.joining(separator));
+    }
+
+    @UsesJava8
+    public static boolean isAnyEmpty(@Nullable String... strArr) {
+        if(ObjectUtils.isEmpty(strArr)) {
+            return true;
+        }
+        return Arrays.asList(strArr).stream().anyMatch(StringUtils::isEmpty);
     }
 }

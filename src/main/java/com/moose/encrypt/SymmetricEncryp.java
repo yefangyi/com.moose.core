@@ -1,6 +1,5 @@
 package com.moose.encrypt;
 
-import com.moose.util.StringUtils;
 import org.springframework.util.Assert;
 
 import javax.crypto.*;
@@ -11,24 +10,23 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.function.Function;
 
 public class SymmetricEncryp {
 
     private static final Charset UTF_8 = StandardCharsets.UTF_8;
-    private SymmetricAlgorithm algorithm;
-    private OperationMode operationMode ;
-    private String transformation;
+    private String algorithm;
     private byte[] iv = null;
+    private Function<byte[], SecretKey> keyApply = null;
 
-    public SymmetricEncryp(SymmetricAlgorithm algorithm, OperationMode operationMode, Padding padding, byte[] iv) {
+    public SymmetricEncryp(String algorithm, Function<byte[], SecretKey> keyApply, Function<String, byte[]> ivApply) {
         this.algorithm = algorithm;
-        this.operationMode = operationMode;
-        this.transformation = StringUtils.join("/", algorithm.getName(), operationMode.getName(), padding.getName());
-        this.iv = iv != null ? iv: operationMode.initIv(transformation);
+        this.keyApply = keyApply;
+        this.iv = ivApply == null ? null : ivApply.apply(algorithm);
     }
 
-    public SymmetricEncryp(SymmetricAlgorithm algorithm, OperationMode operationMode, Padding padding) {
-        this(algorithm, operationMode, padding, null);
+    public SymmetricEncryp(String algorithm, Function<byte[], SecretKey> keyApply) {
+        this(algorithm, keyApply, null);
     }
 
     /**
@@ -86,10 +84,11 @@ public class SymmetricEncryp {
     }
 
     private byte[] crypt(byte[] data, byte[] key, int mode) {
+        Assert.hasLength(algorithm);
         try {
-            SecretKey secretKey = algorithm.createSecretKey(key);
-            Cipher cipher = Cipher.getInstance(transformation);
-            if(operationMode.isNeedParameterSpec()) {
+            SecretKey secretKey = keyApply.apply(key);
+            Cipher cipher = Cipher.getInstance(algorithm);
+            if(isNeedParameterSpec(algorithm)) {
                 cipher.init(mode, secretKey, new IvParameterSpec(iv));
             } else {
                 cipher.init(mode, secretKey, new SecureRandom());
@@ -100,6 +99,10 @@ public class SymmetricEncryp {
         } catch (BadPaddingException | IllegalBlockSizeException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private boolean isNeedParameterSpec(String algorithm) {
+        return algorithm.indexOf("CBC") > 0;
     }
 
 }
